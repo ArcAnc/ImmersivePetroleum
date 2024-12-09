@@ -17,7 +17,7 @@ apply plugin: 'org.parchmentmc.librarian.forgegradle'
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '17'
 //----------------------------------------------------------------------------------------------------------------------
 
-version = '4.2.0-28'
+version = '4.2.0-29'
 group = 'flaxbeard.immersivepetroleum'
 archivesBaseName = 'ImmersivePetroleum-1.19.2'
 
