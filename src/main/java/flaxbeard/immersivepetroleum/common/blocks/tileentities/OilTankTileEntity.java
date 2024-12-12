@@ -392,8 +392,13 @@ public class OilTankTileEntity extends MultiblockPartBlockEntity<OilTankTileEnti
 	@Override
 	public int getComparatorInputOverride(){
 		OilTankTileEntity master = master();
-		if(master != null && this.offsetToMaster.getY() >= 0 && this.offsetToMaster.getY() < this.comparatorHelper.getLayers()){
-			return master.comparatorHelper.getLayerOutput(this.offsetToMaster.getY());
+		if(master != null) {
+			if(Redstone_IN.contains(this.posInMultiblock)) {
+				return master.comparatorHelper.getCurrentMasterOutput();
+			}
+			if(this.offsetToMaster.getY() >= 0 && this.offsetToMaster.getY() < this.comparatorHelper.getLayers()){
+				return master.comparatorHelper.getLayerOutput(this.offsetToMaster.getY());
+			}
 		}
 		return 0;
 	}
