@@ -149,9 +149,8 @@ public class DerrickLogic implements IMultiblockLogic<DerrickLogic.State>, IServ
                 level.getRawLevel().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, PARTICLESTATES[r]), x, y, z, xa, ya, za);
             }
         }
-        //FIXME: This is not the correct blockpos. When the particles do show, they show at the base, in a corner. Probably need to add a position offset from there.
         if(state.spilling){
-            ClientProxy.spawnSpillParticles(level.getRawLevel(), level.getAbsoluteOrigin(), state.fluidSpilled, 5, 1.25F, state.clientFlow);
+            ClientProxy.spawnSpillParticles(level.getRawLevel(), level.toAbsolute(IPContent.Multiblock.DERRICK.masterPosInMB()), state.fluidSpilled, 5, 1.25F, state.clientFlow);
         }
     }
 
@@ -588,19 +587,21 @@ public class DerrickLogic implements IMultiblockLogic<DerrickLogic.State>, IServ
 
             ContainerHelper.saveAllItems(nbt, this.inventory);
         }
-        //TODO: Looks like these need to be changed to get the spill to show properly.
+        //TODO: I don't think this is the proper method. But looks like it works.
         @Override
         public void readSyncNBT(CompoundTag nbt)
         {
-            this.drilling = nbt.getBoolean("drilling");
-            this.spilling = nbt.getBoolean("spilling");
+            readSaveNBT(nbt);
+            //this.drilling = nbt.getBoolean("drilling");
+            //this.spilling = nbt.getBoolean("spilling");
         }
 
         @Override
         public void writeSyncNBT(CompoundTag nbt)
         {
-            nbt.putBoolean("drilling", this.drilling);
-            nbt.putBoolean("spilling", this.spilling);
+            writeSaveNBT(nbt);
+            //nbt.putBoolean("drilling", this.drilling);
+            //nbt.putBoolean("spilling", this.spilling);
         }
 
         private int getReservoirFlow(){
