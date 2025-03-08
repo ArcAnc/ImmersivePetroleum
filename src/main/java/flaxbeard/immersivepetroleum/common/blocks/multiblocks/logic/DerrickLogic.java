@@ -23,8 +23,11 @@ import blusunrize.immersiveengineering.api.multiblocks.blocks.util.CapabilityPos
 import blusunrize.immersiveengineering.api.multiblocks.blocks.util.RelativeBlockFace;
 import blusunrize.immersiveengineering.api.multiblocks.blocks.util.ShapeType;
 import blusunrize.immersiveengineering.api.multiblocks.blocks.util.StoredCapability;
+import blusunrize.immersiveengineering.common.blocks.metal.FluidPipeBlockEntity;
+import blusunrize.immersiveengineering.common.blocks.metal.FluidPumpBlockEntity;
 import blusunrize.immersiveengineering.common.blocks.multiblocks.blockimpl.InitialMultiblockContext;
 import blusunrize.immersiveengineering.common.fluids.ArrayFluidHandler;
+import blusunrize.immersiveengineering.common.register.IEBlockEntities;
 import flaxbeard.immersivepetroleum.api.reservoir.ReservoirHandler;
 import flaxbeard.immersivepetroleum.api.reservoir.ReservoirIsland;
 import flaxbeard.immersivepetroleum.client.ClientProxy;
@@ -146,7 +149,7 @@ public class DerrickLogic implements IMultiblockLogic<DerrickLogic.State>, IServ
                 level.getRawLevel().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, PARTICLESTATES[r]), x, y, z, xa, ya, za);
             }
         }
-
+        //FIXME: This is not the correct blockpos. When the particles do show, they show at the base, in a corner. Probably need to add a position offset from there.
         if(state.spilling){
             ClientProxy.spawnSpillParticles(level.getRawLevel(), level.getAbsoluteOrigin(), state.fluidSpilled, 5, 1.25F, state.clientFlow);
         }
@@ -411,13 +414,12 @@ public class DerrickLogic implements IMultiblockLogic<DerrickLogic.State>, IServ
             BlockEntity target = level.getRawLevel().getBlockEntity(outPos);
             if (target != null)
             {
+                boolean iePipe = level.getRawLevel().getBlockEntity(outPos) instanceof IFluidPipe;
                 LazyOptional<IFluidHandler> output = target.getCapability(ForgeCapabilities.FLUID_HANDLER, mirrored ? front.getClockWise() : front.getCounterClockWise());
                 state.spilling = output.map(out -> {
-                    FluidStack fluid = FluidHelper.copyFluid(extracted, extracted.getAmount());
+                    FluidStack fluid = FluidHelper.copyFluid(extracted, extracted.getAmount(), iePipe);
                     int accepted = out.fill(fluid, IFluidHandler.FluidAction.SIMULATE);
                     if(accepted > 0){
-                        boolean iePipe = level.getRawLevel().getBlockEntity(outPos) instanceof IFluidPipe;
-
                         int drained = out.fill(FluidHelper.copyFluid(fluid, Math.min(fluid.getAmount(), accepted), iePipe), IFluidHandler.FluidAction.EXECUTE);
                         return fluid.getAmount() - drained > 0;
                     }else{
@@ -586,7 +588,7 @@ public class DerrickLogic implements IMultiblockLogic<DerrickLogic.State>, IServ
 
             ContainerHelper.saveAllItems(nbt, this.inventory);
         }
-
+        //TODO: Looks like these need to be changed to get the spill to show properly.
         @Override
         public void readSyncNBT(CompoundTag nbt)
         {
