@@ -23,8 +23,11 @@ import blusunrize.immersiveengineering.api.multiblocks.blocks.util.CapabilityPos
 import blusunrize.immersiveengineering.api.multiblocks.blocks.util.RelativeBlockFace;
 import blusunrize.immersiveengineering.api.multiblocks.blocks.util.ShapeType;
 import blusunrize.immersiveengineering.api.multiblocks.blocks.util.StoredCapability;
+import blusunrize.immersiveengineering.common.blocks.metal.FluidPipeBlockEntity;
+import blusunrize.immersiveengineering.common.blocks.metal.FluidPumpBlockEntity;
 import blusunrize.immersiveengineering.common.blocks.multiblocks.blockimpl.InitialMultiblockContext;
 import blusunrize.immersiveengineering.common.fluids.ArrayFluidHandler;
+import blusunrize.immersiveengineering.common.register.IEBlockEntities;
 import flaxbeard.immersivepetroleum.api.reservoir.ReservoirHandler;
 import flaxbeard.immersivepetroleum.api.reservoir.ReservoirIsland;
 import flaxbeard.immersivepetroleum.client.ClientProxy;
@@ -146,9 +149,8 @@ public class DerrickLogic implements IMultiblockLogic<DerrickLogic.State>, IServ
                 level.getRawLevel().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, PARTICLESTATES[r]), x, y, z, xa, ya, za);
             }
         }
-
         if(state.spilling){
-            ClientProxy.spawnSpillParticles(level.getRawLevel(), level.getAbsoluteOrigin(), state.fluidSpilled, 5, 1.25F, state.clientFlow);
+            ClientProxy.spawnSpillParticles(level.getRawLevel(), level.toAbsolute(IPContent.Multiblock.DERRICK.masterPosInMB()), state.fluidSpilled, 5, 1.25F, state.clientFlow);
         }
     }
 
@@ -411,13 +413,12 @@ public class DerrickLogic implements IMultiblockLogic<DerrickLogic.State>, IServ
             BlockEntity target = level.getRawLevel().getBlockEntity(outPos);
             if (target != null)
             {
+                boolean iePipe = level.getRawLevel().getBlockEntity(outPos) instanceof IFluidPipe;
                 LazyOptional<IFluidHandler> output = target.getCapability(ForgeCapabilities.FLUID_HANDLER, mirrored ? front.getClockWise() : front.getCounterClockWise());
                 state.spilling = output.map(out -> {
-                    FluidStack fluid = FluidHelper.copyFluid(extracted, extracted.getAmount());
+                    FluidStack fluid = FluidHelper.copyFluid(extracted, extracted.getAmount(), iePipe);
                     int accepted = out.fill(fluid, IFluidHandler.FluidAction.SIMULATE);
                     if(accepted > 0){
-                        boolean iePipe = level.getRawLevel().getBlockEntity(outPos) instanceof IFluidPipe;
-
                         int drained = out.fill(FluidHelper.copyFluid(fluid, Math.min(fluid.getAmount(), accepted), iePipe), IFluidHandler.FluidAction.EXECUTE);
                         return fluid.getAmount() - drained > 0;
                     }else{
@@ -586,19 +587,21 @@ public class DerrickLogic implements IMultiblockLogic<DerrickLogic.State>, IServ
 
             ContainerHelper.saveAllItems(nbt, this.inventory);
         }
-
+        //TODO: I don't think this is the proper method. But looks like it works.
         @Override
         public void readSyncNBT(CompoundTag nbt)
         {
-            this.drilling = nbt.getBoolean("drilling");
-            this.spilling = nbt.getBoolean("spilling");
+            readSaveNBT(nbt);
+            //this.drilling = nbt.getBoolean("drilling");
+            //this.spilling = nbt.getBoolean("spilling");
         }
 
         @Override
         public void writeSyncNBT(CompoundTag nbt)
         {
-            nbt.putBoolean("drilling", this.drilling);
-            nbt.putBoolean("spilling", this.spilling);
+            writeSaveNBT(nbt);
+            //nbt.putBoolean("drilling", this.drilling);
+            //nbt.putBoolean("spilling", this.spilling);
         }
 
         private int getReservoirFlow(){

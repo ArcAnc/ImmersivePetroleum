@@ -9,6 +9,7 @@ import blusunrize.immersiveengineering.api.multiblocks.blocks.component.IMultibl
 import blusunrize.immersiveengineering.api.multiblocks.blocks.component.RedstoneControl;
 import blusunrize.immersiveengineering.api.multiblocks.blocks.logic.IMultiblockLogic;
 import blusunrize.immersiveengineering.api.multiblocks.blocks.logic.IMultiblockState;
+import blusunrize.immersiveengineering.api.multiblocks.blocks.registry.MultiblockItem;
 import blusunrize.immersiveengineering.common.blocks.IEBlockInterfaces;
 import blusunrize.immersiveengineering.common.blocks.MultiblockBEType;
 import blusunrize.immersiveengineering.common.blocks.multiblocks.component.MultiblockGui;
@@ -16,6 +17,7 @@ import blusunrize.immersiveengineering.common.register.IEMenuTypes;
 import com.google.common.collect.ImmutableSet;
 import flaxbeard.immersivepetroleum.ImmersivePetroleum;
 import flaxbeard.immersivepetroleum.common.blocks.IPBlockBase;
+import flaxbeard.immersivepetroleum.common.blocks.IPMultiblockBase;
 import flaxbeard.immersivepetroleum.common.util.IPEffects.IPEffect;
 import flaxbeard.immersivepetroleum.common.util.ResourceUtils;
 import net.minecraft.core.BlockPos;
@@ -112,7 +114,10 @@ public class IPRegisters{
 		MultiblockBuilder<S> builder = new MultiblockBuilder<>(logic, name)
 				.structure(structure)
 				.defaultBEs(TE_REGISTER)
-				.defaultBlock(BLOCK_REGISTER, ITEM_REGISTER, prop);
+				.customBlock(BLOCK_REGISTER, ITEM_REGISTER,
+						mb -> new IPMultiblockBase<>(prop, mb),
+						MultiblockItem::new);
+				//.defaultBlock(BLOCK_REGISTER, ITEM_REGISTER, prop);
 
 		if(extras != null){
 			extras.accept(builder);
